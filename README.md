@@ -32,6 +32,7 @@ The frontend is responsible for providing the user interface for administrators 
 
 ## Project Structure
 
+```
 
 src/
 ├── context/ # Authentication context
@@ -45,6 +46,7 @@ src/
 ├── main.jsx # Entry point
 └── index.css # Global styles
 
+```
 
 
 ---
