@@ -1,16 +1,92 @@
-# React + Vite
+# Smart Attendance Management System – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Overview
 
-Currently, two official plugins are available:
+This repository contains the frontend implementation of the **Smart Attendance Management System**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The frontend is responsible for providing the user interface for administrators and employees to interact with the system. It communicates with the backend APIs to handle authentication, dashboard rendering, and attendance-related operations.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration.
+- React.js
+- Vite
+- JavaScript
+- CSS
+- Axios
+- React Router
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Features
+
+- User Login & Signup
+- Admin Dashboard
+- Employee Dashboard
+- Role-based Dashboard Routing
+- Authentication using Backend APIs
+- Responsive UI
+
+---
+
+## Project Structure
+
+
+src/
+├── context/ # Authentication context
+├── pages/ # Application pages
+│ ├── Login.jsx
+│ ├── Signup.jsx
+│ ├── Dashboard.jsx
+│ ├── AdminDashboard.jsx
+│ └── EmployeeDashboard.jsx
+├── App.jsx # Main application component
+├── main.jsx # Entry point
+└── index.css # Global styles
+
+
+
+---
+
+## Installation
+
+Clone the repository:
+
+
+```git clone https://github.com/paulsimran654-glitch/Smart-Attendance-System.git```
+
+
+Install dependencies:
+
+
+```npm install```
+
+
+Start the development server:
+
+
+```npm run dev```
+
+
+The application will run on:
+
+
+```http://localhost:5173```
+
+
+---
+
+## Backend Repository
+
+The backend API for this project is available here:
+
+https://github.com/paulsimran654-glitch/smart-attendance-backend
+
+---
+
+## Author
+
+Simran Paul  
+MCA Final Year Project  
+Smart Attendance Management System
