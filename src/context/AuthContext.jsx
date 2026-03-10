@@ -29,56 +29,27 @@ export const AuthProvider = ({ children }) => {
 
   // ================= LOGIN =================
   const login = async (email, password) => {
-    try {
-      const res = await axios.post(`${API}/login`, {
-        email,
-        password,
-      });
+  try {
+    const res = await axios.post(`${API}/login`, {
+      email,
+      password,
+    });
 
-      setUser(res.data.user);
-      return { success: true };
+    setUser(res.data.user);
 
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Login failed",
-      };
-    }
-  };
+    return {
+      success: true,
+      user: res.data.user,
+    };
 
-  // ================= SIGNUP =================
-  const signup = async (name, email, password) => {
-    try {
-      await axios.post(`${API}/signup`, {
-        name,
-        email,
-        password,
-      });
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Login failed",
+    };
+  }
+};
 
-      return { success: true };
-
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Signup failed",
-      };
-    }
-  };
-
-  // ================= GOOGLE LOGIN =================
-  const googleLogin = async (token) => {
-    try {
-      const res = await axios.post(`${API}/google`, { token });
-      setUser(res.data.user);
-      return { success: true };
-
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Google login failed",
-      };
-    }
-  };
 
   // ================= LOGOUT =================
   const logout = async () => {
@@ -96,9 +67,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         login,
-        signup,
         logout,
-        googleLogin,
       }}
     >
       {children}

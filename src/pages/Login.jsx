@@ -1,14 +1,13 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const { login, googleLogin } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); 
+  const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,26 +31,15 @@ export default function Login() {
     return;
   }
 
-  navigate("/");
+  navigate("/admin/dashboard");
 };
-
-  async function handleGoogleSuccess(credentialResponse) {
-    try {
-      setLoading(true);
-      await googleLogin(credentialResponse.credential);
-      navigate("/");
-    } catch (err) {
-      setError("Google login failed");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="min-h-screen flex">
 
       {/* LEFT SIDE */}
       <div className="w-1/2 flex items-center justify-center bg-white p-10">
+
         <div className="w-full max-w-md">
 
           <h1 className="text-4xl font-bold text-[#0B1F3A] mb-2">
@@ -66,7 +54,7 @@ export default function Login() {
 
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Company Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -93,48 +81,30 @@ export default function Login() {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="px-3 text-gray-400 text-sm">OR</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
-
-          {/* Google Login */}
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError("Google login failed")}
-            />
-          </div>
-
-          <p className="text-sm text-gray-600 mt-6 text-center">
-            Don`t have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-blue-600 hover:underline"
-            >
-              Register here
-            </Link>
-          </p>
-
         </div>
+
       </div>
 
       {/* RIGHT SIDE */}
+
       <div className="w-1/2 bg-linear-to-br from-[#0B1F3A] via-[#102A4C] to-[#1C3D72] text-white flex items-center justify-center">
+
         <div className="text-center px-10">
+
           <h2 className="text-5xl font-bold mb-4">
-            ATTENDLY
+            ATTENDIFY
           </h2>
+
           <p className="text-lg opacity-80">
-            "Attendance is the first step to success,
-            <br />
+            "Attendance is the first step to success,<br/>
             be present to win."
           </p>
+
         </div>
+
       </div>
 
     </div>

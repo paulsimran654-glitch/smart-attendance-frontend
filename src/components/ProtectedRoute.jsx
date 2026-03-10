@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children, role }) {
   if (!user) return <Navigate to="/login" />;
 
   if (role && user.role !== role)
-    return <Navigate to="/" />;
+    return <Navigate to="/admin/dashboard" />;
 
   return children;
 }
