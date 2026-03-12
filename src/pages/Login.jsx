@@ -8,31 +8,35 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
 
-  if (!email || !password) {
-    setError("All fields are required");
-    return;
-  }
+    if (!email || !password) {
+      setError("All fields are required");
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  const result = await login(email, password);
+    const result = await login(email, password);
 
-  if (!result.success) {
-    setError(result.message);
-    setLoading(false);
-    return;
-  }
+    if (!result.success) {
+      setError(result.message);
+      setLoading(false);
+      return;
+    }
 
-  navigate("/admin/dashboard");
-};
+    // ROLE BASED REDIRECT
+    if (result.user.role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/employee/dashboard");
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -57,7 +61,7 @@ export default function Login() {
               placeholder="Company Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"
             />
 
             <input
@@ -65,7 +69,7 @@ export default function Login() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"
             />
 
             {error && (
@@ -77,7 +81,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition"
             >
               {loading ? "Logging in..." : "Login"}
             </button>
@@ -85,12 +89,10 @@ export default function Login() {
           </form>
 
         </div>
-
       </div>
 
       {/* RIGHT SIDE */}
-
-      <div className="w-1/2 bg-linear-to-br from-[#0B1F3A] via-[#102A4C] to-[#1C3D72] text-white flex items-center justify-center">
+      <div className="w-1/2 bg-gradient-to-br from-[#0B1F3A] via-[#102A4C] to-[#1C3D72] text-white flex items-center justify-center">
 
         <div className="text-center px-10">
 
@@ -99,7 +101,8 @@ export default function Login() {
           </h2>
 
           <p className="text-lg opacity-80">
-            "Attendance is the first step to success,<br/>
+            "Attendance is the first step to success,
+            <br />
             be present to win."
           </p>
 

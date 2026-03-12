@@ -6,8 +6,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
+import QRDisplay from "./pages/QRDisplay";
+import ScanQR from "./pages/ScanQR";
+import History from "./pages/History";
 
 import AdminLayout from "./layouts/AdminLayout";
+import EmployeeLayout from "./layouts/EmployeeLayout";
 
 function App() {
   return (
@@ -15,14 +19,18 @@ function App() {
       <BrowserRouter>
         <Routes>
 
-          {/* Login Route */}
+          {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Admin Routes */}
+          {/* QR Display Screen (Entrance Device) */}
+          <Route path="/qr-display" element={<QRDisplay />} />
+
+          {/* ================= ADMIN ROUTES ================= */}
+
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute role="admin">
                 <AdminLayout />
               </ProtectedRoute>
             }
@@ -31,8 +39,25 @@ function App() {
             <Route path="employees" element={<Employees />} />
           </Route>
 
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+
+          {/* ================= EMPLOYEE ROUTES ================= */}
+
+          <Route
+            path="/employee"
+            element={
+              <ProtectedRoute role="employee">
+                <EmployeeLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="scan" element={<ScanQR />} />
+            <Route path="history" element={<History />} />
+          </Route>
+
+
+          {/* Default Redirect */}
+          <Route path="/" element={<Navigate to="/login" />} />
 
         </Routes>
       </BrowserRouter>

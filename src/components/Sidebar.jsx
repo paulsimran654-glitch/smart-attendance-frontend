@@ -21,7 +21,7 @@ const Sidebar = () => {
     <aside className="w-64 bg-slate-900 text-white flex flex-col">
 
       <div className="px-6 py-5 text-xl font-bold border-b border-slate-700">
-        AttendQR
+        Attendify
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-2">
