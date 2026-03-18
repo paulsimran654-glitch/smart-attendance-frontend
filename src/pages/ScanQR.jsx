@@ -35,53 +35,85 @@ export default function ScanQR() {
 
           if (loading) return;
 
+          setLoading(true);
+
           try {
 
-            setLoading(true);
+            // Stop scanner after scan
+            await scanner.stop();
+            await scanner.clear();
+            setScannerStarted(false);
 
             navigator.geolocation.getCurrentPosition(
+
               async (position) => {
 
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
 
-                const res = await axios.post(
-                  "http://localhost:5000/api/attendance/scan",
-                  {
-                    qr: decodedText,
-                    latitude,
-                    longitude
-                  },
-                  { withCredentials: true,
-                    headers: {
-                      "Content-Type": "application/json"
-                    }
-                   }
-                );
+                try {
 
-                setMessage(
-`✅ Attendance Recorded
-Time: ${res.data.time}
-Status: ${res.data.status || ""}`
-                );
+                  const res = await axios.post(
+                    "http://localhost:5000/api/attendance/scan",
+                    {
+                      qr: decodedText,
+                      latitude,
+                      longitude
+                    },
+                    {
+                      withCredentials: true,
+                      headers: {
+                        "Content-Type": "application/json"
+                      }
+                    }
+                  );
+
+                  // ✅ FIX STARTS HERE
+                  const data = res.data;
+
+                  if (data.type === "checkin") {
+                    setMessage(
+                      `✅ Check-in Successful
+Time: ${data.time}
+Status: ${data.status}`
+                    );
+                  } 
+                  else if (data.type === "checkout") {
+                    setMessage(
+                      `✅ Check-out Successful
+Time: ${data.time}`
+                    );
+                  } 
+                  else {
+                    setMessage("Attendance processed");
+                  }
+                  // ✅ FIX ENDS HERE
+
+                } catch (err) {
+
+                  console.error(err);
+
+                  setMessage(
+                    err?.response?.data?.message || "Scan failed"
+                  );
+
+                }
 
                 setLoading(false);
 
               },
-              (err) => {
+
+              () => {
                 setMessage("Location permission denied");
                 setLoading(false);
               }
+
             );
 
           } catch (err) {
 
             console.error(err);
-
-            setMessage(
-              err?.response?.data?.message || "Scan failed"
-            );
-
+            setMessage("Scanner error");
             setLoading(false);
 
           }
@@ -93,12 +125,13 @@ Status: ${res.data.status || ""}`
 
     } catch (err) {
 
-      console.error("Scanner start error:", err);
+      console.error("Scanner start error", err);
       alert("Camera could not start. Check browser permissions.");
 
     }
 
   };
+
 
   const stopScanner = async () => {
 
@@ -114,6 +147,7 @@ Status: ${res.data.status || ""}`
     }
 
   };
+
 
   return (
 
@@ -153,12 +187,11 @@ Status: ${res.data.status || ""}`
       )}
 
       {message && (
-        <div className="mt-6 bg-white p-4 rounded shadow text-center">
+        <div className="mt-6 bg-white p-4 rounded shadow text-center whitespace-pre-line">
           {message}
         </div>
       )}
 
     </div>
-
   );
 }
