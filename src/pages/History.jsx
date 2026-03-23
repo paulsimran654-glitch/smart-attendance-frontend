@@ -1,76 +1,146 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 export default function History() {
 
-return (
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-<div className="space-y-6">
+  // =======================
+  // FETCH DATA
+  // =======================
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
 
-  <div className="flex justify-between items-center">
-    <div>
-      <h1 className="text-2xl font-bold">
-        Attendance History
-      </h1>
-      <p className="text-gray-500 text-sm">
-        1 records
-      </p>
+        const res = await axios.get(
+          "http://localhost:5000/api/attendance/history",
+          { withCredentials: true }
+        );
+
+        setRecords(res.data);
+
+      } catch (err) {
+        console.error("Error fetching history", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
+  // =======================
+  // CALCULATE HOURS
+  // =======================
+  const calculateHours = (checkIn, checkOut) => {
+    if (!checkIn || !checkOut) return "-";
+
+    const [inH, inM] = checkIn.split(":").map(Number);
+    const [outH, outM] = checkOut.split(":").map(Number);
+
+    const inMinutes = inH * 60 + inM;
+    const outMinutes = outH * 60 + outM;
+
+    const diff = outMinutes - inMinutes;
+
+    const hours = (diff / 60).toFixed(2);
+
+    return `${hours}h`;
+  };
+
+  // =======================
+  // STATUS BADGE
+  // =======================
+  const getStatusBadge = (status) => {
+    if (status === "present") {
+      return "bg-green-100 text-green-600";
+    }
+    if (status === "late") {
+      return "bg-yellow-100 text-yellow-600";
+    }
+    if (status === "absent") {
+      return "bg-red-100 text-red-600";
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Attendance History</h1>
+          <p className="text-gray-500 text-sm">
+            {records.length} records
+          </p>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+
+        {loading ? (
+          <p className="p-4 text-gray-500">Loading...</p>
+        ) : records.length === 0 ? (
+          <p className="p-4 text-gray-500">No attendance found</p>
+        ) : (
+
+          <table className="w-full text-sm">
+
+            <thead className="bg-gray-100 text-gray-600">
+              <tr>
+                <th className="text-left p-4">Date</th>
+                <th className="text-left p-4">Check In</th>
+                <th className="text-left p-4">Check Out</th>
+                <th className="text-left p-4">Status</th>
+                <th className="text-left p-4">Hours</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {records.map((item, index) => (
+                <tr key={index} className="border-t">
+
+                 <td className="p-4">
+                  {new Date(item.date).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                  })}
+                  </td>
+
+                  <td className="p-4">
+                    {item.checkIn || "-"}
+                  </td>
+
+                  <td className="p-4">
+                    {item.checkOut || "-"}
+                  </td>
+
+                  <td className="p-4">
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full ${getStatusBadge(item.status)}`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+
+                  <td className="p-4">
+                    {calculateHours(item.checkIn, item.checkOut)}
+                  </td>
+
+                </tr>
+              ))}
+
+            </tbody>
+
+          </table>
+
+        )}
+
+      </div>
     </div>
-
-    <button className="border px-4 py-2 rounded">
-      Download Report
-    </button>
-  </div>
-
-
-  <div className="bg-white rounded-xl shadow overflow-hidden">
-
-    <table className="w-full text-sm">
-
-      <thead className="bg-gray-100 text-gray-600">
-        <tr>
-          <th className="text-left p-4">Date</th>
-          <th className="text-left p-4">Check In</th>
-          <th className="text-left p-4">Check Out</th>
-          <th className="text-left p-4">Status</th>
-          <th className="text-left p-4">Hours</th>
-        </tr>
-      </thead>
-
-      <tbody>
-
-        <tr className="border-t">
-
-          <td className="p-4">
-            2026-03-03
-          </td>
-
-          <td className="p-4">
-            08:55
-          </td>
-
-          <td className="p-4">
-            17:30
-          </td>
-
-          <td className="p-4">
-            <span className="bg-green-100 text-green-600 text-xs px-3 py-1 rounded-full">
-              Present
-            </span>
-          </td>
-
-          <td className="p-4">
-            8.58h
-          </td>
-
-        </tr>
-
-      </tbody>
-
-    </table>
-
-  </div>
-
-</div>
-
-
-);
-
+  );
 }

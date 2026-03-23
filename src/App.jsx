@@ -9,6 +9,7 @@ import Employees from "./pages/Employees";
 import QRDisplay from "./pages/QRDisplay";
 import ScanQR from "./pages/ScanQR";
 import History from "./pages/History";
+import Attendance from "./pages/Attendance";
 
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
@@ -22,7 +23,7 @@ function App() {
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* QR Display Screen (Entrance Device) */}
+          {/* QR Display Screen */}
           <Route path="/qr-display" element={<QRDisplay />} />
 
           {/* ================= ADMIN ROUTES ================= */}
@@ -37,8 +38,8 @@ function App() {
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="employees" element={<Employees />} />
+            <Route path="attendance" element={<Attendance />} />
           </Route>
-
 
           {/* ================= EMPLOYEE ROUTES ================= */}
 
@@ -54,7 +55,6 @@ function App() {
             <Route path="scan" element={<ScanQR />} />
             <Route path="history" element={<History />} />
           </Route>
-
 
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/login" />} />
