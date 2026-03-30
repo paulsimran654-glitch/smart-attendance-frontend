@@ -18,7 +18,6 @@ axios.defaults.withCredentials = true;
 
 const API = "http://localhost:5000/api";
 
-// ================= COMPONENT =================
 const AdminDashboard = () => {
 
   const [stats, setStats] = useState({
@@ -30,27 +29,28 @@ const AdminDashboard = () => {
 
   const [chartData, setChartData] = useState([]);
   const [activity, setActivity] = useState([]);
-  const [predictions, setPredictions] = useState([]); // ✅ AI
-
+  const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ================= FETCH DATA =================
   useEffect(() => {
 
     const fetchDashboard = async () => {
       try {
 
-        // 1️⃣ Employees
+        // ✅ TOTAL EMPLOYEES
         const usersRes = await axios.get(`${API}/admin/users`);
         const totalEmployees = usersRes.data.length;
 
-        // 2️⃣ Attendance
-        const attendanceRes = await axios.get(`${API}/attendance/history`);
+        // ✅ ALL ATTENDANCE (ADMIN)
+        const attendanceRes = await axios.get(`${API}/admin/attendance`);
 
-        const today = new Date().toISOString().split("T")[0];
+        // ✅ FIX 1: IST DATE (CRITICAL)
+        const today = new Date().toLocaleDateString("en-CA", {
+          timeZone: "Asia/Kolkata"
+        });
 
         const todayRecords = attendanceRes.data.filter(
-          (r) => r.date && r.date.startsWith(today)
+          (r) => r.dateString === today
         );
 
         let present = 0;
@@ -63,7 +63,6 @@ const AdminDashboard = () => {
           else if (r.status === "absent") absent++;
         });
 
-        // Stats
         setStats({
           total: totalEmployees,
           present,
@@ -71,7 +70,7 @@ const AdminDashboard = () => {
           late
         });
 
-        // Activity
+        // ✅ TODAY ACTIVITY
         const activityData = todayRecords.map((r) => ({
           name: r.employee?.name || "Employee",
           time: r.checkIn || "--",
@@ -80,17 +79,30 @@ const AdminDashboard = () => {
 
         setActivity(activityData);
 
-        // Weekly Chart
-        const last5Days = [];
+        // ================= WEEKLY FIX (MON → FRI) =================
 
-        for (let i = 4; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
+        const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+        const weeklyData = [];
 
-          const dateStr = d.toISOString().split("T")[0];
+        const todayDate = new Date();
 
-          const records = attendanceRes.data.filter((r) =>
-            r.date && r.date.startsWith(dateStr)
+        // get Monday
+        const day = todayDate.getDay();
+        const diff = todayDate.getDate() - day + (day === 0 ? -6 : 1);
+
+        const monday = new Date(todayDate.setDate(diff));
+
+        for (let i = 0; i < 5; i++) {
+
+          const d = new Date(monday);
+          d.setDate(monday.getDate() + i);
+
+          const dateStr = d.toLocaleDateString("en-CA", {
+            timeZone: "Asia/Kolkata"
+          });
+
+          const records = attendanceRes.data.filter(
+            (r) => r.dateString === dateStr
           );
 
           let p = 0, l = 0, a = 0;
@@ -101,20 +113,22 @@ const AdminDashboard = () => {
             else if (r.status === "absent") a++;
           });
 
-          last5Days.push({
-            day: d.toLocaleDateString("en-US", { weekday: "short" }),
+          weeklyData.push({
+            day: weekDays[i],
             present: p,
             late: l,
             absent: a
           });
         }
 
-        setChartData(last5Days);
+        setChartData(weeklyData);
 
-        // ================= AI: Predictions =================
+        // ================= AI =================
         const predictionRes = await axios.get(`${API}/attendance/predictions`);
 
-        const highRisk = predictionRes.data.filter(p => p.risk === "High");
+        const highRisk = predictionRes.data.filter(
+          (p) => p.risk === "High"
+        );
 
         setPredictions(highRisk);
 
@@ -136,7 +150,6 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
         <h2 className="text-2xl font-bold">Dashboard</h2>
         <p className="text-sm text-gray-500">
@@ -147,37 +160,16 @@ const AdminDashboard = () => {
       {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
-        <StatCard
-          title="Total Employees"
-          value={stats.total}
-          icon={Users}
-          color="bg-blue-100 text-blue-600"
-        />
+        <StatCard title="Total Employees" value={stats.total} icon={Users} color="bg-blue-100 text-blue-600" />
 
-        <StatCard
-          title="Present Today"
-          value={stats.present}
-          icon={CheckCircle}
-          color="bg-green-100 text-green-600"
-        />
+        <StatCard title="Present Today" value={stats.present} icon={CheckCircle} color="bg-green-100 text-green-600" />
 
-        <StatCard
-          title="Absent Today"
-          value={stats.absent}
-          icon={XCircle}
-          color="bg-red-100 text-red-600"
-        />
+        <StatCard title="Absent Today" value={stats.absent} icon={XCircle} color="bg-red-100 text-red-600" />
 
-        <StatCard
-          title="Late Today"
-          value={stats.late}
-          icon={Clock}
-          color="bg-orange-100 text-orange-600"
-        />
+        <StatCard title="Late Today" value={stats.late} icon={Clock} color="bg-orange-100 text-orange-600" />
 
       </div>
 
-      {/* BOTTOM PANELS */}
       <div className="grid lg:grid-cols-3 gap-6">
 
         {/* CHART */}
@@ -205,7 +197,7 @@ const AdminDashboard = () => {
         {/* RIGHT SIDE */}
         <div className="space-y-6">
 
-          {/* TODAY ACTIVITY */}
+          {/* ACTIVITY */}
           <div className="bg-white rounded-xl shadow p-6">
 
             <h3 className="font-semibold mb-4">
@@ -219,24 +211,17 @@ const AdminDashboard = () => {
                 <div key={i} className="flex justify-between items-center">
 
                   <div>
-                    <p className="text-sm font-medium">
-                      {item.name}
-                    </p>
-
-                    <p className="text-xs text-gray-400">
-                      {item.time}
-                    </p>
+                    <p className="text-sm font-medium">{item.name}</p>
+                    <p className="text-xs text-gray-400">{item.time}</p>
                   </div>
 
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full ${
-                      item.status === "present"
-                        ? "bg-green-100 text-green-600"
-                        : item.status === "late"
-                        ? "bg-orange-100 text-orange-600"
-                        : "bg-red-100 text-red-600"
-                    }`}
-                  >
+                  <span className={`text-xs px-3 py-1 rounded-full ${
+                    item.status === "present"
+                      ? "bg-green-100 text-green-600"
+                      : item.status === "late"
+                      ? "bg-orange-100 text-orange-600"
+                      : "bg-red-100 text-red-600"
+                  }`}>
                     {item.status}
                   </span>
 
@@ -252,7 +237,7 @@ const AdminDashboard = () => {
 
           </div>
 
-          {/* 🧠 AI PANEL */}
+          {/* AI */}
           <div className="bg-white rounded-xl shadow p-6">
 
             <h3 className="font-semibold mb-4">

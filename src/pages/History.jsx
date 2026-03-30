@@ -6,13 +6,15 @@ export default function History() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ NEW STATE (DATE FILTER)
+  const [selectedDate, setSelectedDate] = useState("");
+
   // =======================
   // FETCH DATA
   // =======================
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-
         const res = await axios.get(
           "http://localhost:5000/api/attendance/history",
           { withCredentials: true }
@@ -53,28 +55,41 @@ export default function History() {
   // STATUS BADGE
   // =======================
   const getStatusBadge = (status) => {
-    if (status === "present") {
-      return "bg-green-100 text-green-600";
-    }
-    if (status === "late") {
-      return "bg-yellow-100 text-yellow-600";
-    }
-    if (status === "absent") {
-      return "bg-red-100 text-red-600";
-    }
+    if (status === "present") return "bg-green-100 text-green-600";
+    if (status === "late") return "bg-yellow-100 text-yellow-600";
+    if (status === "absent") return "bg-red-100 text-red-600";
   };
+
+  // ✅ FILTER LOGIC
+  const filteredRecords = records.filter((item) => {
+    if (!selectedDate) return true;
+
+    return (
+      new Date(item.date).toISOString().slice(0, 10) === selectedDate
+    );
+  });
 
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
+      {/* HEADER + FILTER */}
       <div className="flex justify-between items-center">
+
         <div>
           <h1 className="text-2xl font-bold">Attendance History</h1>
           <p className="text-gray-500 text-sm">
-            {records.length} records
+            {filteredRecords.length} records
           </p>
         </div>
+
+        {/* ✅ DATE FILTER (RIGHT SIDE) */}
+        <input
+          type="date"
+          className="border px-4 py-2 rounded-lg"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+
       </div>
 
       {/* TABLE */}
@@ -82,7 +97,7 @@ export default function History() {
 
         {loading ? (
           <p className="p-4 text-gray-500">Loading...</p>
-        ) : records.length === 0 ? (
+        ) : filteredRecords.length === 0 ? (
           <p className="p-4 text-gray-500">No attendance found</p>
         ) : (
 
@@ -100,15 +115,15 @@ export default function History() {
 
             <tbody>
 
-              {records.map((item, index) => (
+              {filteredRecords.map((item, index) => (
                 <tr key={index} className="border-t">
 
-                 <td className="p-4">
-                  {new Date(item.date).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric"
-                  })}
+                  <td className="p-4">
+                    {new Date(item.date).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric"
+                    })}
                   </td>
 
                   <td className="p-4">
@@ -141,6 +156,7 @@ export default function History() {
         )}
 
       </div>
+
     </div>
   );
 }
