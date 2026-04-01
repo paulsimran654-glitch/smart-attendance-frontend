@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Pencil, Eye } from "lucide-react";
 
 export default function Attendance() {
 
   const [records, setRecords] = useState([]);
 
-  const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("");
-  const [date, setDate] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [newCheckout, setNewCheckout] = useState("");
+  const [reason, setReason] = useState("");
 
-  const [sortField, setSortField] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [showReasonId, setShowReasonId] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 8;
@@ -31,15 +31,47 @@ export default function Attendance() {
     }
   };
 
+  const handleUpdate = async (item) => {
+
+    if (!newCheckout) return alert("Enter checkout time");
+    if (!reason) return alert("Enter reason");
+
+    const [inH, inM] = item.checkIn.split(":").map(Number);
+    const [outH, outM] = newCheckout.split(":").map(Number);
+
+    if ((outH * 60 + outM) <= (inH * 60 + inM)) {
+      return alert("Checkout must be after check-in");
+    }
+
+    try {
+      await axios.put(
+        `http://localhost:5000/api/admin/attendance/${item._id}`,
+        { checkOut: newCheckout, reason },
+        { withCredentials: true }
+      );
+
+      setEditingId(null);
+      setNewCheckout("");
+      setReason("");
+
+      await fetchAttendance();
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setNewCheckout("");
+    setReason("");
+  };
+
   const calculateHours = (checkIn, checkOut) => {
     if (!checkIn || !checkOut) return "-";
-
     const [inH, inM] = checkIn.split(":").map(Number);
     const [outH, outM] = checkOut.split(":").map(Number);
-
-    const diff = (outH * 60 + outM) - (inH * 60 + inM);
-
-    return (diff / 60).toFixed(2) + "h";
+    return (((outH * 60 + outM) - (inH * 60 + inM)) / 60).toFixed(2) + "h";
   };
 
   const statusStyle = (status) => {
@@ -48,97 +80,47 @@ export default function Attendance() {
     if (status === "absent") return "bg-red-100 text-red-600";
   };
 
-  const departments = [
-    ...new Set(records.map(r => r.employee?.department).filter(Boolean))
-  ];
+  // ✅ UPDATED LOGIC ONLY
+  const canEdit = (item) => {
+    if (!item.checkIn || item.status === "absent") return false;
 
-  const fieldMap = {
-    name: (item) => item.employee?.name || "",
-    department: (item) => item.employee?.department || "",
-    date: (item) => item.date,
-    status: (item) => item.status || "",
+    const today = new Date();
+    const recordDate = new Date(item.date);
+
+    const isToday =
+      today.getDate() === recordDate.getDate() &&
+      today.getMonth() === recordDate.getMonth() &&
+      today.getFullYear() === recordDate.getFullYear();
+
+    const diffTime = today - recordDate;
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+    return isToday || (!item.checkOut && diffDays <= 2);
   };
 
-  const filteredRecords = records.filter((item) => {
-    const nameMatch = item.employee?.name
-      ?.toLowerCase()
-      .includes(search.toLowerCase());
-
-    const deptMatch = department
-      ? item.employee?.department === department
-      : true;
-
-    const dateMatch = date
-      ? new Date(item.date).toISOString().slice(0, 10) === date
-      : true;
-
-    return nameMatch && deptMatch && dateMatch;
-  });
-
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  };
-
-  const sortedRecords = [...filteredRecords].sort((a, b) => {
-    if (!sortField) return 0;
-
-    let valA = fieldMap[sortField](a);
-    let valB = fieldMap[sortField](b);
-
-    if (sortField === "date") {
-      valA = new Date(valA);
-      valB = new Date(valB);
-    } else {
-      valA = valA.toString().toLowerCase();
-      valB = valB.toString().toLowerCase();
-    }
-
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-
-    return 0;
-  });
-
-  const getArrow = (field) => {
-    if (sortField !== field) return "";
-    return sortOrder === "asc" ? " ↑" : " ↓";
-  };
-
-  const totalPages = Math.ceil(sortedRecords.length / recordsPerPage);
-
+  // ================= PAGINATION =================
+  const totalPages = Math.ceil(records.length / recordsPerPage);
   const startIndex = (currentPage - 1) * recordsPerPage;
-  const currentRecords = sortedRecords.slice(startIndex, startIndex + recordsPerPage);
+  const currentRecords = records.slice(startIndex, startIndex + recordsPerPage);
 
-  // ✅ SMART DOTS PAGINATION
-  const getPageNumbers = () => {
+  const getPagination = () => {
     const pages = [];
 
     if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
 
-    pages.push(1);
+      if (currentPage > 3) pages.push("...");
 
-    if (currentPage > 3) {
-      pages.push("...");
-    }
-
-    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-      if (i > 1 && i < totalPages) {
-        pages.push(i);
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        if (i > 1 && i < totalPages) pages.push(i);
       }
-    }
 
-    if (currentPage < totalPages - 2) {
-      pages.push("...");
-    }
+      if (currentPage < totalPages - 2) pages.push("...");
 
-    pages.push(totalPages);
+      pages.push(totalPages);
+    }
 
     return pages;
   };
@@ -148,132 +130,120 @@ export default function Attendance() {
 
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold">Attendance Records</h1>
-        <p className="text-gray-500 text-sm">
-          {sortedRecords.length} records
-        </p>
-      </div>
-
-      <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4">
-
-        <div className="flex-1 min-w-[250px]">
-          <input
-            type="text"
-            placeholder="Search by name..."
-            className="border px-4 py-2 rounded-lg w-full"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
-
-        <div className="flex gap-3">
-
-          <select
-            className="border px-4 py-2 rounded-lg"
-            value={department}
-            onChange={(e) => {
-              setDepartment(e.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="">All Depts</option>
-            {departments.map((dept, i) => (
-              <option key={i} value={dept}>{dept}</option>
-            ))}
-          </select>
-
-          <input
-            type="date"
-            className="border px-4 py-2 rounded-lg"
-            value={date}
-            onChange={(e) => {
-              setDate(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-
-        </div>
-
+        <p className="text-gray-500 text-sm">{records.length} records</p>
       </div>
 
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow overflow-hidden">
 
-        <table className="w-full table-fixed text-sm">
+        <table className="w-full text-sm">
 
           <thead className="bg-gray-100 text-gray-600">
             <tr>
-              <th className="p-3 text-left cursor-pointer" onClick={() => handleSort("name")}>
-                Employee{getArrow("name")}
-              </th>
-              <th className="p-3 text-left cursor-pointer" onClick={() => handleSort("department")}>
-                Department{getArrow("department")}
-              </th>
-              <th className="p-3 text-left cursor-pointer" onClick={() => handleSort("date")}>
-                Date{getArrow("date")}
-              </th>
+              <th className="p-3 text-left">Employee</th>
+              <th className="p-3 text-left">Department</th>
+              <th className="p-3 text-left">Date</th>
               <th className="p-3 text-left">Check In</th>
               <th className="p-3 text-left">Check Out</th>
-              <th className="p-3 text-left cursor-pointer" onClick={() => handleSort("status")}>
-                Status{getArrow("status")}
-              </th>
+              <th className="p-3 text-left">Status</th>
               <th className="p-3 text-left">Hours</th>
+              <th className="p-3 text-left">Edit</th>
             </tr>
           </thead>
 
           <tbody>
-            {currentRecords.length > 0 ? (
-              currentRecords.map((item, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="p-3">{item.employee?.name || "-"}</td>
-                  <td className="p-3">{item.employee?.department || "-"}</td>
-                  <td className="p-3">{new Date(item.date).toLocaleDateString("en-IN")}</td>
-                  <td className="p-3">{item.checkIn || "-"}</td>
-                  <td className="p-3">{item.checkOut || "-"}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 text-xs rounded-full ${statusStyle(item.status)}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="p-3">{calculateHours(item.checkIn, item.checkOut)}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="text-center p-6 text-gray-500">
-                  No records found
+            {currentRecords.map((item) => (
+              <tr key={item._id} className="border-t">
+
+                <td className="p-3">{item.employee?.name}</td>
+                <td className="p-3">{item.employee?.department}</td>
+                <td className="p-3">{new Date(item.date).toLocaleDateString("en-IN")}</td>
+
+                <td className="p-3">{item.checkIn || "-"}</td>
+
+                <td className="p-3">
+                  {editingId === item._id ? (
+                    <div className="flex flex-col gap-2">
+                      <input type="time" value={newCheckout} onChange={(e) => setNewCheckout(e.target.value)} className="border px-2 py-1 rounded"/>
+                      <input type="text" placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} className="border px-2 py-1 rounded"/>
+                    </div>
+                  ) : item.checkOut || "-"}
                 </td>
+
+                <td className="p-3">
+                  <span className={`px-2 py-1 text-xs rounded-full ${statusStyle(item.status)}`}>
+                    {item.status}
+                  </span>
+                </td>
+
+                <td className="p-3">{calculateHours(item.checkIn, item.checkOut)}</td>
+
+                <td className="p-3 flex gap-2 items-center">
+
+                  {item.reason && (
+                    <Eye size={16} className="text-gray-500 cursor-pointer hover:text-blue-600 transition duration-200"
+                      onClick={() =>
+                        setShowReasonId(showReasonId === item._id ? null : item._id)
+                      }
+                    />
+                  )}
+
+                  {editingId === item._id ? (
+                    <>
+                      <button onClick={() => handleUpdate(item)} className="text-blue-600 text-sm">Save</button>
+                      <button onClick={handleCancel} className="text-gray-500 text-sm">Cancel</button>
+                    </>
+                  ) : canEdit(item) ? (
+                    <Pencil size={16} className="cursor-pointer hover:text-blue-600"
+                      onClick={() => {
+                        setEditingId(item._id);
+                        setNewCheckout("");
+                        setReason("");
+                      }}
+                    />
+                  ) : (
+                    <Pencil size={16} className="text-gray-300 cursor-not-allowed"/>
+                  )}
+
+                </td>
+
               </tr>
+            ))}
+
+            {currentRecords.map((item) =>
+              showReasonId === item._id ? (
+                <tr key={item._id + "-reason"}>
+                  <td colSpan="8" className="bg-gray-50 p-3">
+                    <strong>Reason:</strong> {item.reason}
+                  </td>
+                </tr>
+              ) : null
             )}
+
           </tbody>
 
         </table>
 
       </div>
 
-      {/* PAGINATION WITH DOTS */}
-      <div className="max-w-6xl mx-auto flex justify-center items-center gap-2 flex-wrap">
+      {/* ================= PAGINATION UI ================= */}
+      <div className="flex justify-center items-center gap-2">
 
         <button
-          onClick={() => setCurrentPage(prev => prev - 1)}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+          className="px-3 py-1 bg-gray-200 rounded"
         >
           Prev
         </button>
 
-        {getPageNumbers().map((page, index) =>
+        {getPagination().map((page, i) =>
           page === "..." ? (
-            <span key={index} className="px-2">...</span>
+            <span key={i} className="px-2">...</span>
           ) : (
             <button
-              key={page}
+              key={i}
               onClick={() => setCurrentPage(page)}
               className={`px-3 py-1 rounded ${
-                currentPage === page
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200"
+                currentPage === page ? "bg-blue-600 text-white" : "bg-gray-200"
               }`}
             >
               {page}
@@ -282,9 +252,8 @@ export default function Attendance() {
         )}
 
         <button
-          onClick={() => setCurrentPage(prev => prev + 1)}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+          className="px-3 py-1 bg-gray-200 rounded"
         >
           Next
         </button>
