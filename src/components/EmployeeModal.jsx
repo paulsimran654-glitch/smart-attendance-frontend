@@ -58,7 +58,7 @@ const [showPassword, setShowPassword] = useState(false);
         <form onSubmit={handleSubmit} className="space-y-3">
 
           <input
-            name="name"
+            name="name" 
             placeholder="Name"
             value={form.name}
             onChange={handleChange}

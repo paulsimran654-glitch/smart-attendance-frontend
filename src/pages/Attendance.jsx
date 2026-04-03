@@ -79,23 +79,42 @@ export default function Attendance() {
     if (status === "late") return "bg-yellow-100 text-yellow-600";
     if (status === "absent") return "bg-red-100 text-red-600";
   };
+  
+  
+  // ✅ FIXED LOGIC (ONLY CHANGE)
+  const canEdit = (item) => {
+    if (!item.checkIn) return false;
+
+    // ❌ If checkout exists → NEVER editable
+    if (item.checkOut) return false;
+
+    // ❌ Absent → no edit
+    if (item.status === "absent") return false;
 
   // ✅ UPDATED LOGIC ONLY
   const canEdit = (item) => {
     if (!item.checkIn || item.status === "absent") return false;
-
+ 
     const today = new Date();
     const recordDate = new Date(item.date);
+
+    const diffTime = today - recordDate;
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
     const isToday =
       today.getDate() === recordDate.getDate() &&
       today.getMonth() === recordDate.getMonth() &&
       today.getFullYear() === recordDate.getFullYear();
 
+ 
+    // ✅ Only incomplete + within 2 days OR today
+    return isToday || diffDays <= 2;
+
     const diffTime = today - recordDate;
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
     return isToday || (!item.checkOut && diffDays <= 2);
+ 
   };
 
   // ================= PAGINATION =================
