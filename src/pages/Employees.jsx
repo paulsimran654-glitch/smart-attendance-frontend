@@ -139,7 +139,7 @@ const Employees = () => {
           <thead className="bg-gray-100 text-gray-600">
 
             <tr>
-              <th className="text-left px-6 py-3">Employee</th>
+              <th className="text-left px-6 py-3">Employee:</th>
               <th className="text-left px-6 py-3">ID</th>
               <th className="text-left px-6 py-3">Department</th>
               <th className="text-left px-6 py-3">Email</th>
