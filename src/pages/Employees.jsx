@@ -20,8 +20,6 @@ const Employees = () => {
 
   const [search, setSearch] = useState("");
 
-  /* ---------------- FETCH EMPLOYEES ---------------- */
-
   const fetchEmployees = async () => {
     try {
       const data = await getEmployees();
@@ -36,8 +34,6 @@ const Employees = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
-
-  /* ---------------- ADD / EDIT EMPLOYEE ---------------- */
 
   const handleSubmit = async (formData) => {
     try {
@@ -56,8 +52,6 @@ const Employees = () => {
     }
   };
 
-  /* ---------------- DELETE EMPLOYEE ---------------- */
-
   const handleDelete = async (id) => {
 
     const confirmDelete = window.confirm(
@@ -74,16 +68,12 @@ const Employees = () => {
     }
   };
 
-  /* ---------------- SEARCH FILTER ---------------- */
-
   const filteredEmployees = employees.filter((emp) =>
     emp.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="space-y-6">
-
-      {/* HEADER */}
 
       <div className="flex justify-between items-center">
 
@@ -107,8 +97,6 @@ const Employees = () => {
 
       </div>
 
-      {/* SEARCH */}
-
       <div className="flex gap-4">
 
         <div className="relative flex-1">
@@ -130,22 +118,22 @@ const Employees = () => {
 
       </div>
 
-      {/* TABLE */}
-
       <div className="bg-white shadow rounded-xl overflow-hidden">
 
         <table className="w-full text-sm">
 
           <thead className="bg-gray-100 text-gray-600">
-
             <tr>
-              <th className="text-left px-6 py-3">Employee:</th>
+              <th className="text-left px-6 py-3">Employee</th>
               <th className="text-left px-6 py-3">ID</th>
               <th className="text-left px-6 py-3">Department</th>
               <th className="text-left px-6 py-3">Email</th>
+
+              {/* ✅ NEW COLUMN */}
+              <th className="text-left px-6 py-3">Phone</th>
+
               <th className="text-right px-6 py-3">Actions</th>
             </tr>
-
           </thead>
 
           <tbody>
@@ -173,6 +161,11 @@ const Employees = () => {
 
                 <td className="px-6 py-4 text-gray-600">
                   {emp.email}
+                </td>
+
+                {/* ✅ SHOW PHONE */}
+                <td className="px-6 py-4 text-gray-600">
+                  {emp.phone}
                 </td>
 
                 <td className="px-6 py-4 flex justify-end gap-3">
@@ -205,8 +198,6 @@ const Employees = () => {
         </table>
 
       </div>
-
-      {/* MODAL */}
 
       <EmployeeModal
         isOpen={modalOpen}
