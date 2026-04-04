@@ -1,63 +1,86 @@
-import {
-  LayoutDashboard,
-  Users,
-  QrCode,
-  ClipboardList,
-  Settings
-} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-import { NavLink } from "react-router-dom";
+export default function Sidebar() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-const menu = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-  { name: "Employees", icon: Users, path: "/admin/employees" },
-  { name: "QR Code", icon: QrCode, path: "/admin/qrcode" },
-  { name: "Attendance", icon: ClipboardList, path: "/admin/attendance" },
-  { name: "Settings", icon: Settings, path: "/admin/settings" }
-];
+  const { user, logout } = useContext(AuthContext);
 
-const Sidebar = () => {
+  const linkClass = (path) =>
+    `flex items-center gap-3 px-4 py-3 rounded-lg ${
+      location.pathname.includes(path)
+        ? "bg-blue-600"
+        : "hover:bg-blue-800"
+    }`;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
-    <aside className="w-64 bg-slate-900 text-white flex flex-col">
+    <div className="w-64 bg-[#0f172a] text-white flex flex-col justify-between h-screen">
 
-      <div className="px-6 py-5 text-xl font-bold border-b border-slate-700">
-        Attendify
+      {/* TOP SECTION */}
+      <div>
+
+        {/* LOGO */}
+        <div className="text-2xl font-bold p-6 border-b border-gray-700">
+          Attendify
+        </div>
+
+        {/* NAV */}
+        <nav className="p-4 space-y-2">
+
+          <Link to="/admin/dashboard" className={linkClass("dashboard")}>
+            Dashboard
+          </Link>
+
+          <Link to="/admin/employees" className={linkClass("employees")}>
+            Employees
+          </Link>
+
+          <Link to="/admin/attendance" className={linkClass("attendance")}>
+            Attendance
+          </Link>
+
+        </nav>
+
       </div>
 
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {menu.map((item) => {
-          const Icon = item.icon;
+      {/* BOTTOM SECTION */}
+      <div className="p-4 border-t border-gray-700">
 
-          return (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                  isActive
-                    ? "bg-slate-700"
-                    : "hover:bg-slate-800"
-                }`
-              }
-            >
-              <Icon size={18} />
-              {item.name}
-            </NavLink>
-          );
-        })}
-      </nav>
+        {/* USER INFO */}
+        <div className="flex items-center gap-3 mb-4">
 
-      <div className="p-4 border-t border-slate-700">
-        <p className="text-sm font-medium">Admin User</p>
-        <p className="text-xs text-gray-400">admin</p>
+          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">
+            {user?.name ? user.name.charAt(0) : "A"}
+          </div>
 
-        <button className="mt-3 text-sm text-red-400 hover:text-red-300">
+          <div>
+            <p className="text-sm font-semibold">
+              {user?.name || "Admin User"}
+            </p>
+            <p className="text-xs text-gray-400 capitalize">
+              {user?.role || "admin"}
+            </p>
+          </div>
+
+        </div>
+
+        {/* SIGN OUT */}
+        <button
+          onClick={handleLogout}
+          className="w-full text-left px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition"
+        >
           Sign Out
         </button>
+
       </div>
 
-    </aside>
+    </div>
   );
-};
-
-export default Sidebar;
+}
