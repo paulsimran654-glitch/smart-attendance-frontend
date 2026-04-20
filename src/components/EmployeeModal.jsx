@@ -73,7 +73,7 @@ const EmployeeModal = ({ isOpen, onClose, onSubmit, editingEmployee }) => {
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
 
-      <div className="bg-white w-[400px] rounded-xl shadow-lg p-6">
+      <div className="bg-white width:400px rounded-xl shadow-lg p-6">
 
         <h2 className="text-lg font-semibold mb-4">
           {editingEmployee ? "Edit Employee" : "Add Employee"}

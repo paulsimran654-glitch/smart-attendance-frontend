@@ -20,6 +20,15 @@ export default function Login() {
       return;
     }
 
+    // ✅ UPDATED DOMAIN VALIDATION
+    if (
+      !email.endsWith("@webcraft.com") &&
+      !email.endsWith("@attendify.com")
+    ) {
+      setError("Use company email (@webcraft.com or @attendify.com)");
+      return;
+    }
+
     setLoading(true);
 
     const result = await login(email, password);
@@ -30,7 +39,6 @@ export default function Login() {
       return;
     }
 
-    // ROLE BASED REDIRECT
     if (result.user.role === "admin") {
       navigate("/admin/dashboard");
     } else {
@@ -41,7 +49,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
 
-      {/* LEFT SIDE */}
       <div className="w-1/2 flex items-center justify-center bg-white p-10">
 
         <div className="w-full max-w-md">
@@ -72,6 +79,17 @@ export default function Login() {
               className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500"
             />
 
+            {/* ✅ ADDED FORGOT PASSWORD LINK (ONLY ADDITION) */}
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             {error && (
               <p className="text-red-500 text-sm">
                 {error}
@@ -91,8 +109,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
-      <div className="w-1/2 bg-gradient-to-br from-[#0B1F3A] via-[#102A4C] to-[#1C3D72] text-white flex items-center justify-center">
+      <div className="w-1/2 bg-linear-to-br from-[#0B1F3A] via-[#102A4C] to-[#1C3D72] text-white flex items-center justify-center">
 
         <div className="text-center px-10">
 
