@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// Pages
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
@@ -10,7 +12,9 @@ import QRDisplay from "./pages/QRDisplay";
 import ScanQR from "./pages/ScanQR";
 import History from "./pages/History";
 import Attendance from "./pages/Attendance";
+import ForgotPassword from "./pages/ForgotPassword";
 
+// Layouts
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
 
@@ -20,14 +24,17 @@ function App() {
       <BrowserRouter>
         <Routes>
 
-          {/* Public Route */}
-          <Route path="/login" element={<Login />} />
+          {/* 🌐 LANDING PAGE (NEW DEFAULT) */}
+          <Route path="/" element={<LandingPage />} />
 
-          {/* QR Display Screen */}
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* QR Display */}
           <Route path="/qr-display" element={<QRDisplay />} />
 
           {/* ================= ADMIN ROUTES ================= */}
-
           <Route
             path="/admin"
             element={
@@ -42,7 +49,6 @@ function App() {
           </Route>
 
           {/* ================= EMPLOYEE ROUTES ================= */}
-
           <Route
             path="/employee"
             element={
@@ -56,8 +62,8 @@ function App() {
             <Route path="history" element={<History />} />
           </Route>
 
-          {/* Default Redirect */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          {/* OPTIONAL: fallback (if wrong URL entered) */}
+          <Route path="*" element={<LandingPage />} />
 
         </Routes>
       </BrowserRouter>
